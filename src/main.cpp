@@ -16,12 +16,20 @@ const char *vertexShaderSource = "#version 330 core\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
+
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
+
+const char *fragmentShaderSourceTwo = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+"   FragColor = vec4(1.0f, 1.0f, 0.2f, 1.0f);\n"
+"}\n\0";
 
 int main()
 {
@@ -83,6 +91,18 @@ int main()
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
+
+    unsigned int fragmentShaderTwo = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShaderTwo, 1, &fragmentShaderSourceTwo, NULL);
+    glCompileShader(fragmentShaderTwo);
+
+    glGetShaderiv(fragmentShaderTwo, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShaderTwo, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT_TWO::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
     // link shaders
     unsigned int shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
@@ -96,6 +116,21 @@ int main()
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+    unsigned int shaderProgramTwo = glCreateProgram();
+    glAttachShader(shaderProgramTwo, vertexShader);
+    glAttachShader(shaderProgramTwo, fragmentShaderTwo);
+    glLinkProgram(shaderProgramTwo);
+
+    glGetProgramiv(shaderProgramTwo, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(shaderProgramTwo, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM_TWO::LINKING_FAILED" << std::endl;
+    }
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShaderTwo);
+
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -190,7 +225,9 @@ int main()
 
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        
+
+        glUseProgram(shaderProgramTwo);
+
         glBindVertexArray(VAOTwo);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         // glDrawElements(GL_TRIANGLES, 6 ,GL_UNSIGNED_INT, 0);
